@@ -2,11 +2,23 @@ import sys
 import os
 import csv
 
+class pointFile:
+    def __init__(self,path,group=""):
+        self.group = group
+        self.path=path
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return (self.path)
+
 class utmPoint:
-    def __init__(self,x,y,z):
+    def __init__(self,x,y,z,group = ""):
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
+        self.group = group
 
     def assign(self, other):
         self.x = other.x
@@ -68,13 +80,16 @@ class mainProgram:
 
 
         filelist = []
+        #bDoSeparateElements = True
+        bDoSeparateElements = False
+
+        elements = ["ab", "ag", "aw", "brk", "lpb", "lpnb", "lpub"]
 
         if self.doFilter:
 
             # dgm1l-ab_32357_5757_1_nw.xyz
 
             prefix = "dgm1l"
-            elements = ["ab","ag","aw","brk","lpb","lpnb","lpub"]
             zone = 32
             resoultion = 1  # kms
             postfix = "_nw.xyz"
@@ -89,7 +104,7 @@ class mainProgram:
                 for x in range(minfx,maxfx+1,resoultion):
                     for y in range(minfy, maxfy + 1, resoultion):
                         fn = ("%s-%s_%d%d_%d_%d%s" % (prefix,e,zone,x,y,resoultion,postfix))
-                        filelist.append(os.path.join(folder, fn))
+                        filelist.append(pointFile(os.path.join(folder, fn),e))
 
             #print(filelist)
             #return
@@ -113,17 +128,17 @@ class mainProgram:
         maxPoint = utmPoint(0, 0, 0)
 
         bNotFirst = False
-        n = 1;
+        n = 1
 
         for file in filelist:
             print ("processing file %d/%d" % (n,filecount))
             n+=1
             try:
-                with open(file) as csvfile:
+                with open(file.path) as csvfile:
                     reader = csv.DictReader(csvfile,["x","y","z"])
                     for row in reader:
                         try:
-                            aPoint = utmPoint(row["x"],row["y"],row["z"])
+                            aPoint = utmPoint(row["x"],row["y"],row["z"],file.group)
                             if self.passes_filter(aPoint):
                                 if bNotFirst:
                                     minPoint.min(aPoint)
@@ -144,22 +159,51 @@ class mainProgram:
         print("setting origin to %s" % str(minPoint))
 
 
+        outfiles = dict()
+        group = "combined"
 
-        outfile = "selected_points_xyz_spaced.txt"
-        outfile = os.path.join(folder, outfile)
-
+        folder = os.path.join(folder,"output")
         try:
-            os.remove(outfile)
+            os.mkdir(folder)
         except:
             pass
 
-        with open(outfile, "a") as f:
-            for point in pointList:
-                f.write('%s \n' % str(point-minPoint))
+        if bDoSeparateElements:
+            for e in elements:
+                outfilename = ("out_xyz_spaced_%s.xyz" % e)
+                outfiles[e] = os.path.join(folder, outfilename)
+        else:
+            outfilename = ("out_xyz_spaced_%s.xyz" % group)
+            outfiles[group] = os.path.join(folder, outfilename)
 
-        print("saved selected points to %s" % outfile)
+        outfilehandles = dict()
+        for file in outfiles:
+            try:
+                os.remove(outfiles[file])
+            except:
+                pass
+            try:
+                outfilehandles[file] = open(outfiles[file], "a")
+            except:
+                pass
 
+        #with open(outfile, "a") as f:
+#            for point in pointList:
+#                f.write('%s \n' % str(point-minPoint))
 
+        #print(outfiles)
+
+        for point in pointList:
+            if bDoSeparateElements:
+                outfilehandles[point.group].write('%s \n' % str(point - minPoint))
+            else:
+                outfilehandles[group].write('%s \n' % str(point-minPoint))
+
+        # f.write('%s \n' % str(point-minPoint))
+
+        print("saved selected points to:")
+        for file in outfiles:
+            print(outfiles[file])
 
 
 
