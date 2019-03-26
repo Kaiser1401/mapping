@@ -1,0 +1,3 @@
+[submodule "gml2obj"]
+	path = gml2obj
+	url = https://github.com/tudelft3d/CityGML2OBJs
