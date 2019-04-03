@@ -1,52 +1,7 @@
 import sys
 import os
 import csv
-
-class pointFile:
-    def __init__(self,path,group=""):
-        self.group = group
-        self.path=path
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return (self.path)
-
-class utmPoint:
-    def __init__(self,x,y,z,group = ""):
-        self.x = float(x)
-        self.y = float(y)
-        self.z = float(z)
-        self.group = group
-
-    def assign(self, other):
-        self.x = other.x
-        self.y = other.y
-        self.z = other.z
-
-    def min(self,other):
-        self.x = min(self.x, other.x)
-        self.y = min(self.y, other.y)
-        self.z = min(self.z, other.z)
-
-    def max(self,other):
-        self.x = max(self.x, other.x)
-        self.y = max(self.y, other.y)
-        self.z = max(self.z, other.z)
-
-    def __sub__(self, other):
-        return utmPoint(self.x-other.x,self.y-other.y,self.z-other.z)
-
-    def __add__(self, other):
-        return utmPoint(self.x+other.x,self.y+other.y,self.z+other.z)
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return ("%f %f %f" % (self.x, self.y, self.z))
-
+from maptool_types import *
 
 class mainProgram:
     def __init__(self,arguments):
@@ -172,9 +127,10 @@ class mainProgram:
             for e in elements:
                 outfilename = ("out_xyz_spaced_%s.xyz" % e)
                 outfiles[e] = os.path.join(folder, outfilename)
-        else:
-            outfilename = ("out_xyz_spaced_%s.xyz" % group)
-            outfiles[group] = os.path.join(folder, outfilename)
+#        else:
+
+        outfilename = ("out_xyz_spaced_%s.xyz" % group)
+        outfiles[group] = os.path.join(folder, outfilename)
 
         outfilehandles = dict()
         for file in outfiles:
@@ -196,8 +152,8 @@ class mainProgram:
         for point in pointList:
             if bDoSeparateElements:
                 outfilehandles[point.group].write('%s \n' % str(point - minPoint))
-            else:
-                outfilehandles[group].write('%s \n' % str(point-minPoint))
+#            else:
+            outfilehandles[group].write('%s \n' % str(point-minPoint))
 
         # f.write('%s \n' % str(point-minPoint))
 
