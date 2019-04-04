@@ -35,8 +35,8 @@ class mainProgram:
 
 
         filelist = []
-        #bDoSeparateElements = True
-        bDoSeparateElements = False
+        bDoSeparateElements = True
+        #bDoSeparateElements = False
 
         elements = ["ab", "ag", "aw", "brk", "lpb", "lpnb", "lpub"]
 

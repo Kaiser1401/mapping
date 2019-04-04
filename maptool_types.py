@@ -60,7 +60,7 @@ class HoleFixer:
         edgePoints = []
 
 
-        # maybe change to query_ball_tree¶
+        # maybe change to query_ball_tree
         for point in self.points:
             neighbours = self.tree.query_ball_point(point,range)
             if len(neighbours) <= minNeighbourCount:
@@ -77,7 +77,7 @@ class HoleFixer:
 
     def getPatchPoints(self,edgePoints,range=1.6,minDist=2.0,pointSpacing=0.7):
         patchPoints = []
-        # maybe change to query_ball_tree¶
+        # maybe change to query_ball_tree
         for point in edgePoints:
             neighbours = self.tree.query_ball_point(point, range)
             #find highest
