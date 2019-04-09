@@ -2,6 +2,7 @@ import sys
 import os
 import csv
 from maptool_types import *
+#from shutil import copy2
 
 class mainProgram:
     def __init__(self,arguments):
@@ -19,13 +20,18 @@ class mainProgram:
 
     def main(self):
         if len(arguments) <= 0:
-            print ("usage: %s path [x_min x_max y_min y_max]" % sys.argv[0])
+            print ("usage: %s path [x_min x_max y_min y_max] [no_center] [select_only]" % sys.argv[0])
             return
 
         folder = os.path.abspath(arguments[0])
 
 
         self.doFilter = len(arguments) >= 5
+
+        self.bNoCenter = ("no_center" in arguments)
+
+        self.bCopyInputOnly = ("select_only" in arguments)
+
 
         if self.doFilter:
             self.xmin = float(arguments[1])
@@ -72,6 +78,34 @@ class mainProgram:
                 if file.endswith(".xyz"):
                     filelist.append(os.path.join(folder, file))
 
+
+
+        output_folder_suffix = ""
+        if self.bNoCenter:
+            output_folder_suffix += "_uncentered"
+
+        if self.bCopyInputOnly:
+            output_folder_suffix += "_copy"
+
+        folder = os.path.join(folder,"output%s" % output_folder_suffix)
+        try:
+            os.mkdir(folder)
+        except:
+            pass
+
+
+        if self.bCopyInputOnly:
+            print ("copying selected files to %s" % folder)
+            for file in filelist:
+                print (file)
+                os.popen("copy \"%s\" \"%s\"" % (file, folder))
+            print ("done")
+
+            return # done
+
+
+
+
         filecount = len(filelist)
         print ("trying to scan %d files" % filecount)
 
@@ -92,16 +126,20 @@ class mainProgram:
                 with open(file.path) as csvfile:
                     reader = csv.DictReader(csvfile,["x","y","z"])
                     for row in reader:
+                        #print(row)
                         try:
                             aPoint = utmPoint(row["x"],row["y"],row["z"],file.group)
+                            #print(aPoint)
                             if self.passes_filter(aPoint):
-                                if bNotFirst:
-                                    minPoint.min(aPoint)
-                                    maxPoint.max(aPoint)
-                                else:
-                                    minPoint.assign(aPoint)
-                                    maxPoint.assign(aPoint)
-                                    bNotFirst = True
+
+                                if not self.bNoCenter:
+                                    if bNotFirst:
+                                        minPoint.min(aPoint)
+                                        maxPoint.max(aPoint)
+                                    else:
+                                        minPoint.assign(aPoint)
+                                        maxPoint.assign(aPoint)
+                                        bNotFirst = True
 
                                 pointList.append(aPoint)
                         except:
@@ -113,15 +151,8 @@ class mainProgram:
 
         print("setting origin to %s" % str(minPoint))
 
-
         outfiles = dict()
         group = "combined"
-
-        folder = os.path.join(folder,"output")
-        try:
-            os.mkdir(folder)
-        except:
-            pass
 
         if bDoSeparateElements:
             for e in elements:
